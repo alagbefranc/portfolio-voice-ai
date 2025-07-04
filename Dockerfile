@@ -10,50 +10,40 @@ RUN apt-get update && apt-get install -y \
     libportaudio2 \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements file
+# Copy requirements file and install dependencies
 COPY requirements.txt .
-
-# Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install flask
 
 # Copy application files
 COPY . .
 
+# Create a simple wrapper that runs both the agent and a health check server
+RUN echo "from flask import Flask" > cloud_run_wrapper.py && \
+    echo "import threading" >> cloud_run_wrapper.py && \
+    echo "import subprocess" >> cloud_run_wrapper.py && \
+    echo "import os" >> cloud_run_wrapper.py && \
+    echo "import time" >> cloud_run_wrapper.py && \
+    echo "" >> cloud_run_wrapper.py && \
+    echo "app = Flask(__name__)" >> cloud_run_wrapper.py && \
+    echo "" >> cloud_run_wrapper.py && \
+    echo "@app.route('/')" >> cloud_run_wrapper.py && \
+    echo "def health():" >> cloud_run_wrapper.py && \
+    echo "    return 'Voice AI Agent is running', 200" >> cloud_run_wrapper.py && \
+    echo "" >> cloud_run_wrapper.py && \
+    echo "def run_agent():" >> cloud_run_wrapper.py && \
+    echo "    time.sleep(2)  # Give Flask time to start" >> cloud_run_wrapper.py && \
+    echo "    subprocess.run(['python', 'agent.py', 'start'])" >> cloud_run_wrapper.py && \
+    echo "" >> cloud_run_wrapper.py && \
+    echo "if __name__ == '__main__':" >> cloud_run_wrapper.py && \
+    echo "    agent_thread = threading.Thread(target=run_agent, daemon=True)" >> cloud_run_wrapper.py && \
+    echo "    agent_thread.start()" >> cloud_run_wrapper.py && \
+    echo "    port = int(os.environ.get('PORT', 8080))" >> cloud_run_wrapper.py && \
+    echo "    app.run(host='0.0.0.0', port=port)" >> cloud_run_wrapper.py
+
 # Set environment variables for Cloud Run
 ENV PORT=8080
 ENV PYTHONUNBUFFERED=1
-
-# Cloud Run expects the app to listen on PORT
-# Since this is a worker, we'll use a simple health check server
-RUN echo 'from flask import Flask\n\
-import threading\n\
-import subprocess\n\
-import os\n\
-\n\
-app = Flask(__name__)\n\
-\n\
-@app.route("/")\n\
-def health():\n\
-    return "Voice AI Agent is running", 200\n\
-\n\
-def run_agent():\n\
-    subprocess.run(["python", "agent.py", "start"])\n\
-\n\
-if __name__ == "__main__":\n\
-    # Start the agent in a background thread\n\
-    agent_thread = threading.Thread(target=run_agent, daemon=True)\n\
-    agent_thread.start()\n\
-    \n\
-    # Run Flask server for health checks\n\
-    port = int(os.environ.get("PORT", 8080))\n\
-    app.run(host="0.0.0.0", port=port)\n\
-' > cloud_run_wrapper.py
-
-# Add Flask to requirements for the health check server
-RUN echo "flask" >> requirements.txt
-
-# Install Flask
-RUN pip install flask
 
 # Run the wrapper script
 CMD ["python", "cloud_run_wrapper.py"]
