@@ -223,18 +223,5 @@ async def entrypoint(ctx: agents.JobContext):
 
 
 if __name__ == "__main__":
-    # Limit worker processes to reduce memory usage on Heroku
-    import multiprocessing
-    multiprocessing.set_start_method('spawn', force=True)  # Use spawn method for better memory management
-    
-    worker_options = agents.WorkerOptions(
-        entrypoint_fnc=entrypoint,
-        prewarm_fn=lambda proc: None,  # Disable prewarming to save memory
-        # Note: num_proc seems to be controlled by the agent framework internally
-    )
-    
-    # Set environment variable to limit processes
-    import os
-    os.environ['LIVEKIT_AGENTS_WORKERS'] = '2'  # Try to limit to 2 workers
-    
-    agents.cli.run_app(worker_options)
+    # Run with basic configuration
+    agents.cli.run_app(agents.WorkerOptions(entrypoint_fnc=entrypoint))
