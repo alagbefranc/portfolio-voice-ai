@@ -1,0 +1,45 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: voice-ai-agent
+  annotations:
+    run.googleapis.com/launch-stage: BETA
+spec:
+  template:
+    metadata:
+      annotations:
+        # Allocate more memory for the AI models
+        run.googleapis.com/memory: "4Gi"
+        # Allocate more CPU for processing
+        run.googleapis.com/cpu: "2"
+        # Allow longer timeouts for agent processing
+        run.googleapis.com/request-timeout: "3600"
+        # Keep instances warm to avoid cold starts
+        run.googleapis.com/min-instances: "1"
+        # Limit max instances to control costs
+        run.googleapis.com/max-instances: "10"
+    spec:
+      containers:
+      - image: gcr.io/PROJECT_ID/voice-ai-agent
+        env:
+        # These will be set from Secret Manager or directly
+        - name: LIVEKIT_URL
+          value: "TO_BE_SET"
+        - name: LIVEKIT_API_KEY
+          value: "TO_BE_SET"
+        - name: LIVEKIT_API_SECRET
+          value: "TO_BE_SET"
+        - name: DEEPGRAM_API_KEY
+          value: "TO_BE_SET"
+        - name: OPENAI_API_KEY
+          value: "TO_BE_SET"
+        - name: CARTESIA_API_KEY
+          value: "TO_BE_SET"
+        - name: CAL_COM_API_KEY
+          value: "TO_BE_SET"
+        - name: CAL_COM_EVENT_TYPE_ID
+          value: "TO_BE_SET"
+        resources:
+          limits:
+            memory: "4Gi"
+            cpu: "2"

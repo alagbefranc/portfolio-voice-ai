@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+
+# Git
+.git/
+.gitignore
+
+# Environment files
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
+*.log
+*.sqlite
+*.db
+node_modules/
+dist/
+build/
+
+# Documentation
+README.md
+docs/
+*.md
+
+# Heroku specific files
+Procfile
+app.json
+runtime.txt
