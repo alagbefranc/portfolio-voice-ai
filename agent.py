@@ -223,4 +223,11 @@ async def entrypoint(ctx: agents.JobContext):
 
 
 if __name__ == "__main__":
-    agents.cli.run_app(agents.WorkerOptions(entrypoint_fnc=entrypoint))
+    # Limit worker processes to reduce memory usage on Heroku
+    agents.cli.run_app(
+        agents.WorkerOptions(
+            entrypoint_fnc=entrypoint,
+            num_proc=2,  # Reduce from default 8 to 2 processes
+            max_tasks_per_proc=10,  # Limit concurrent tasks per process
+        )
+    )
