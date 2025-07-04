@@ -1,0 +1,51 @@
+{
+  "name": "Portfolio Voice AI Assistant",
+  "description": "AI-powered voice assistant for portfolio interactions using LiveKit",
+  "repository": "https://github.com/your-repo/portfolio-voice-ai",
+  "keywords": ["python", "livekit", "voice-ai", "openai", "deepgram"],
+  "formation": {
+    "worker": {
+      "quantity": 1,
+      "size": "eco"
+    }
+  },
+  "env": {
+    "DEEPGRAM_API_KEY": {
+      "description": "Your Deepgram API key for speech-to-text",
+      "required": true
+    },
+    "OPENAI_API_KEY": {
+      "description": "Your OpenAI API key for GPT-4",
+      "required": true
+    },
+    "CARTESIA_API_KEY": {
+      "description": "Your Cartesia API key for text-to-speech",
+      "required": true
+    },
+    "LIVEKIT_API_KEY": {
+      "description": "Your LiveKit API key",
+      "required": true
+    },
+    "LIVEKIT_API_SECRET": {
+      "description": "Your LiveKit API secret",
+      "required": true
+    },
+    "LIVEKIT_URL": {
+      "description": "Your LiveKit WebSocket URL (e.g., wss://your-instance.livekit.cloud)",
+      "required": true
+    },
+    "CAL_API_KEY": {
+      "description": "Your Cal.com API key for meeting booking",
+      "required": false
+    },
+    "CAL_EVENT_TYPE_ID": {
+      "description": "Your Cal.com event type ID",
+      "required": false
+    }
+  },
+  "buildpacks": [
+    {
+      "url": "heroku/python"
+    }
+  ]
+}
