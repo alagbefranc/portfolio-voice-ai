@@ -221,9 +221,9 @@ async def entrypoint(ctx: agents.JobContext):
             language="en",   # Use specific language instead of multi
         ),
         llm=llm,
-        tts=cartesia.TTS(
-            model="sonic-1",  # Use faster model instead of sonic-2 
-            voice="2ee87190-8f84-4925-97da-e52547f9462c",  # Use default voice for better performance
+        tts=openai.TTS(
+            model="tts-1",     # Fast OpenAI TTS model
+            voice="alloy",     # Clear, professional voice
         ),
         vad=silero.VAD.load(),  # Use default parameters
         # turn_detection=MultilingualModel(),  # Disabled due to ONNX compatibility issues
@@ -242,12 +242,12 @@ async def entrypoint(ctx: agents.JobContext):
         print("Agent session started successfully")
     except Exception as e:
         print(f"Failed to start agent session: {e}")
-        # Try to restart with minimal configuration
-        print("Retrying with minimal configuration...")
+        # Try to restart with minimal configuration and alternative TTS
+        print("Retrying with minimal configuration and OpenAI TTS...")
         minimal_session = AgentSession(
             stt=deepgram.STT(model="nova-2", language="en"),
             llm=llm,
-            tts=cartesia.TTS(model="sonic-1"),
+            tts=openai.TTS(model="tts-1", voice="nova"),  # Alternative OpenAI TTS
             vad=silero.VAD.load(),
         )
         await minimal_session.start(room=ctx.room, agent=agent)
