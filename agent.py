@@ -277,14 +277,9 @@ if __name__ == "__main__":
     # Use automatic dispatch - agent will be dispatched to each new room automatically
     print("Agent using automatic dispatch pattern - will join all new rooms")
     
-    # Configure worker options for automatic dispatch with Render optimizations
+    # Configure worker options for automatic dispatch
     worker_options = agents.WorkerOptions(
         entrypoint_fnc=entrypoint,
-        # Optimize for Render free tier resource constraints
-        max_concurrent_jobs=1,  # Limit to 1 concurrent job to prevent overload
-        job_timeout=300,        # 5 minute timeout per job
-        ws_ping_interval=30,    # Keep websocket alive
-        ws_ping_timeout=10,     # Ping timeout
     )
     
     # Start the agent worker
