@@ -208,33 +208,55 @@ async def entrypoint(ctx: agents.JobContext):
         tools=booking_tools
     )
     
-    # Create the LLM instance
+    # Create the LLM instance with faster model
     llm = openai.LLM(
         model="gpt-4o-mini",
-        temperature=0.7,  # Add some variability for natural responses
+        temperature=0.6,  # Slightly lower for more consistent responses
+        max_tokens=150,   # Limit response length for faster processing
+        timeout=10.0,     # 10 second timeout to prevent hanging
     )
     
-    # Create the agent session with optimized settings for natural speech
+    # Create the agent session with optimized settings for performance
     session = AgentSession(
-        stt=deepgram.STT(model="nova-3", language="multi"),
+        stt=deepgram.STT(
+            model="nova-2",  # Use faster model instead of nova-3
+            language="en",   # Use specific language instead of multi
+        ),
         llm=llm,
         tts=cartesia.TTS(
-            model="sonic-2", 
-            voice="8e093c57-1b16-461f-bb39-893c9992c710",  # Custom cloned voice
+            model="sonic-1",  # Use faster model instead of sonic-2 
+            voice="2ee87190-8f84-4925-97da-e52547f9462c",  # Use default voice for better performance
+            sample_rate=24000,  # Lower sample rate for better streaming
         ),
-        vad=silero.VAD.load(),
+        vad=silero.VAD.load(
+            min_speech_duration=0.1,  # Faster speech detection
+            min_silence_duration=0.5, # Shorter silence before responding
+        ),
         # turn_detection=MultilingualModel(),  # Disabled due to ONNX compatibility issues
     )
 
-    # Start the session
-    await session.start(
-        room=ctx.room,
-        agent=agent,
-        room_input_options=RoomInputOptions(
-            # LiveKit Cloud enhanced noise cancellation
-            noise_cancellation=noise_cancellation.BVC(), 
-        ),
-    )
+    # Start the session with timeout and retry logic
+    try:
+        await session.start(
+            room=ctx.room,
+            agent=agent,
+            room_input_options=RoomInputOptions(
+                # Disable noise cancellation for better performance on free tier
+                noise_cancellation=None, 
+            ),
+        )
+        print("Agent session started successfully")
+    except Exception as e:
+        print(f"Failed to start agent session: {e}")
+        # Try to restart with minimal configuration
+        print("Retrying with minimal configuration...")
+        minimal_session = AgentSession(
+            stt=deepgram.STT(model="nova-2", language="en"),
+            llm=llm,
+            tts=cartesia.TTS(model="sonic-1"),
+            vad=silero.VAD.load(),
+        )
+        await minimal_session.start(room=ctx.room, agent=agent)
 
     # The session will automatically handle user interactions
     # and generate responses based on the agent's instructions
@@ -255,9 +277,14 @@ if __name__ == "__main__":
     # Use automatic dispatch - agent will be dispatched to each new room automatically
     print("Agent using automatic dispatch pattern - will join all new rooms")
     
-    # Configure worker options for automatic dispatch
+    # Configure worker options for automatic dispatch with Render optimizations
     worker_options = agents.WorkerOptions(
         entrypoint_fnc=entrypoint,
+        # Optimize for Render free tier resource constraints
+        max_concurrent_jobs=1,  # Limit to 1 concurrent job to prevent overload
+        job_timeout=300,        # 5 minute timeout per job
+        ws_ping_interval=30,    # Keep websocket alive
+        ws_ping_timeout=10,     # Ping timeout
     )
     
     # Start the agent worker
