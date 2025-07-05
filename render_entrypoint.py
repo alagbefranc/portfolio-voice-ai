@@ -215,6 +215,7 @@ if __name__ == '__main__':
     
     print("Starting Voice AI service on Render...")
     print("Agent will automatically join all new rooms matching 'portfolio-voice-*'")
+    print("Deployment: 2025-07-05 13:54 UTC - Fixed LLM configuration")
     
     # Start keepalive service
     keepalive_ping()
