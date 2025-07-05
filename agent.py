@@ -221,9 +221,10 @@ async def entrypoint(ctx: agents.JobContext):
             language="en",   # Use specific language instead of multi
         ),
         llm=llm,
-        tts=openai.TTS(
-            model="tts-1",     # Fast OpenAI TTS model
-            voice="alloy",     # Clear, professional voice
+        tts=cartesia.TTS(
+            model="sonic-2",   # High quality Cartesia model
+            voice="8e093c57-1b16-461f-bb39-893c9992c710",  # Your custom cloned voice
+            api_key=os.environ.get("CARTESIA_API_KEY"),  # Explicit API key
         ),
         vad=silero.VAD.load(),  # Use default parameters
         # turn_detection=MultilingualModel(),  # Disabled due to ONNX compatibility issues
@@ -242,15 +243,30 @@ async def entrypoint(ctx: agents.JobContext):
         print("Agent session started successfully")
     except Exception as e:
         print(f"Failed to start agent session: {e}")
-        # Try to restart with minimal configuration and alternative TTS
-        print("Retrying with minimal configuration and OpenAI TTS...")
-        minimal_session = AgentSession(
-            stt=deepgram.STT(model="nova-2", language="en"),
-            llm=llm,
-            tts=openai.TTS(model="tts-1", voice="nova"),  # Alternative OpenAI TTS
-            vad=silero.VAD.load(),
-        )
-        await minimal_session.start(room=ctx.room, agent=agent)
+        # Try to restart with Cartesia fallback configuration
+        print("Retrying with Cartesia fallback configuration...")
+        try:
+            fallback_session = AgentSession(
+                stt=deepgram.STT(model="nova-2", language="en"),
+                llm=llm,
+                tts=cartesia.TTS(
+                    model="sonic-1",  # Faster model for fallback
+                    voice="2ee87190-8f84-4925-97da-e52547f9462c",  # Default professional voice
+                ),
+                vad=silero.VAD.load(),
+            )
+            await fallback_session.start(room=ctx.room, agent=agent)
+        except Exception as fallback_error:
+            print(f"Cartesia fallback also failed: {fallback_error}")
+            # Final fallback to OpenAI TTS if Cartesia completely fails
+            print("Using OpenAI TTS as final fallback...")
+            final_session = AgentSession(
+                stt=deepgram.STT(model="nova-2", language="en"),
+                llm=llm,
+                tts=openai.TTS(model="tts-1", voice="alloy"),
+                vad=silero.VAD.load(),
+            )
+            await final_session.start(room=ctx.room, agent=agent)
 
     # The session will automatically handle user interactions
     # and generate responses based on the agent's instructions
