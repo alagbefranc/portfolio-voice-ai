@@ -212,8 +212,6 @@ async def entrypoint(ctx: agents.JobContext):
     llm = openai.LLM(
         model="gpt-4o-mini",
         temperature=0.6,  # Slightly lower for more consistent responses
-        max_tokens=150,   # Limit response length for faster processing
-        timeout=10.0,     # 10 second timeout to prevent hanging
     )
     
     # Create the agent session with optimized settings for performance
@@ -226,12 +224,8 @@ async def entrypoint(ctx: agents.JobContext):
         tts=cartesia.TTS(
             model="sonic-1",  # Use faster model instead of sonic-2 
             voice="2ee87190-8f84-4925-97da-e52547f9462c",  # Use default voice for better performance
-            sample_rate=24000,  # Lower sample rate for better streaming
         ),
-        vad=silero.VAD.load(
-            min_speech_duration=0.1,  # Faster speech detection
-            min_silence_duration=0.5, # Shorter silence before responding
-        ),
+        vad=silero.VAD.load(),  # Use default parameters
         # turn_detection=MultilingualModel(),  # Disabled due to ONNX compatibility issues
     )
 
