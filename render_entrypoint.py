@@ -197,8 +197,9 @@ def keepalive_ping():
         while True:
             try:
                 time.sleep(600)  # Wait 10 minutes
-                # Self-ping to keep service awake
-                requests.get("https://portfolio-voice-ai.onrender.com/", timeout=10)
+                # Self-ping to keep service awake (will be updated after Fly.io deployment)
+                fly_url = os.environ.get('FLY_APP_URL', 'https://portfolio-voice-ai.fly.dev/')
+                requests.get(fly_url, timeout=10)
                 print("Keepalive ping sent")
             except Exception as e:
                 print(f"Keepalive ping failed: {e}")
