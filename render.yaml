@@ -3,8 +3,8 @@ services:
     name: voice-ai-agent
     runtime: docker
     plan: starter # You can upgrade to starter plus or professional for better performance
-    repo: https://github.com/YOUR_USERNAME/voice-ai # Update this with your GitHub repo
-    branch: main # Or your default branch
+    repo: https://github.com/alagbefranc/portfolio-voice-ai.git
+    branch: master # Or your default branch
     dockerfilePath: ./Dockerfile
     dockerContext: ./
     
