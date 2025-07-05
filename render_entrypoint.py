@@ -189,6 +189,25 @@ def signal_handler(signum, frame):
     
     sys.exit(0)
 
+def keepalive_ping():
+    """Simple keepalive function to prevent Render from sleeping"""
+    import requests
+    
+    def ping():
+        while True:
+            try:
+                time.sleep(600)  # Wait 10 minutes
+                # Self-ping to keep service awake
+                requests.get("https://portfolio-voice-ai.onrender.com/", timeout=10)
+                print("Keepalive ping sent")
+            except Exception as e:
+                print(f"Keepalive ping failed: {e}")
+    
+    # Start keepalive in background thread
+    ping_thread = threading.Thread(target=ping, daemon=True)
+    ping_thread.start()
+    print("Keepalive service started")
+
 if __name__ == '__main__':
     # Set up signal handlers for graceful shutdown
     signal.signal(signal.SIGINT, signal_handler)
@@ -196,6 +215,9 @@ if __name__ == '__main__':
     
     print("Starting Voice AI service on Render...")
     print("Agent will automatically join all new rooms matching 'portfolio-voice-*'")
+    
+    # Start keepalive service
+    keepalive_ping()
     
     # Start the agent in a background thread
     agent_thread = threading.Thread(target=run_agent, daemon=True)
