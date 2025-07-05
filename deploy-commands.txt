@@ -1,0 +1,17 @@
+# Google Cloud Run Deployment Commands
+
+# 1. Enable required APIs (run after billing is enabled)
+gcloud services enable run.googleapis.com cloudbuild.googleapis.com containerregistry.googleapis.com
+
+# 2. Build and deploy in one command
+gcloud run deploy voice-ai-agent --source . --region us-central1 --memory 4Gi --cpu 2 --timeout 3600 --min-instances 0 --max-instances 10 --allow-unauthenticated
+
+# 3. Set environment variables (replace with your actual values)
+gcloud run services update voice-ai-agent --region us-central1 --set-env-vars LIVEKIT_URL=wss://your-livekit-url,LIVEKIT_API_KEY=your-api-key,LIVEKIT_API_SECRET=your-api-secret,DEEPGRAM_API_KEY=your-deepgram-key,OPENAI_API_KEY=your-openai-key,CARTESIA_API_KEY=your-cartesia-key,CAL_COM_API_KEY=your-cal-key,CAL_COM_EVENT_TYPE_ID=your-event-type-id
+
+# 4. Get the service URL
+gcloud run services describe voice-ai-agent --region us-central1 --format="value(status.url)"
+
+# Alternative: Deploy from your .env file values
+# First, let's create environment variables from your .env file:
+# (Run in PowerShell after billing is enabled)

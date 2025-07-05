@@ -1,0 +1,48 @@
+services:
+  - type: web
+    name: voice-ai-agent
+    runtime: docker
+    plan: starter # You can upgrade to starter plus or professional for better performance
+    repo: https://github.com/YOUR_USERNAME/voice-ai # Update this with your GitHub repo
+    branch: main # Or your default branch
+    dockerfilePath: ./Dockerfile
+    dockerContext: ./
+    
+    # Environment variables - these should be set in Render dashboard for security
+    envVars:
+      - key: LIVEKIT_URL
+        sync: false # Set this in Render dashboard
+      - key: LIVEKIT_API_KEY
+        sync: false # Set this in Render dashboard  
+      - key: LIVEKIT_API_SECRET
+        sync: false # Set this in Render dashboard
+      - key: DEEPGRAM_API_KEY
+        sync: false # Set this in Render dashboard
+      - key: OPENAI_API_KEY
+        sync: false # Set this in Render dashboard
+      - key: CARTESIA_API_KEY
+        sync: false # Set this in Render dashboard
+      - key: CAL_API_KEY
+        sync: false # Set this in Render dashboard
+      - key: PORT
+        value: "8080"
+    
+    # Health check configuration
+    healthCheckPath: /
+    
+    # Autoscaling configuration
+    scaling:
+      minInstances: 1
+      maxInstances: 10
+      targetCPUPercent: 50 # Scale up when CPU usage hits 50%
+      targetMemoryPercent: 70 # Scale up when memory usage hits 70%
+    
+    # Resource allocation
+    disk:
+      name: voice-ai-agent-disk
+      sizeGB: 10
+      mountPath: /tmp
+    
+    # Build configuration
+    buildCommand: echo "Using Docker build"
+    startCommand: python cloud_run_wrapper.py

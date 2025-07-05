@@ -112,7 +112,25 @@ async def create_meeting_booking(name: str, email: str, preferred_time: str = ""
 booking_tools = [get_available_times, create_meeting_booking]
 
 
+
+
 async def entrypoint(ctx: agents.JobContext):
+    # Filter rooms - only join portfolio voice rooms
+    room_name = ctx.room.name if ctx.room else "unknown"
+    
+    if not room_name.startswith("portfolio-voice-"):
+        print(f"Skipping non-portfolio room: {room_name}")
+        return  # Don't join this room
+    
+    print(f"Agent joining portfolio voice room: {room_name}")
+    
+    # Add shutdown callback for cleanup (LiveKit best practice)
+    async def cleanup_session():
+        print(f"Session ending for room: {ctx.room.name}")
+        # Add any cleanup logic here (e.g., save conversation history)
+        
+    ctx.add_shutdown_callback(cleanup_session)
+    
     # Connect to the room first
     await ctx.connect()
     
@@ -223,5 +241,24 @@ async def entrypoint(ctx: agents.JobContext):
 
 
 if __name__ == "__main__":
-    # Run with basic configuration
-    agents.cli.run_app(agents.WorkerOptions(entrypoint_fnc=entrypoint))
+    import sys
+    
+    # Parse command line arguments (LiveKit standard)
+    mode = sys.argv[1] if len(sys.argv) > 1 else "dev"
+    
+    print(f"Starting LiveKit voice agent in {mode} mode...")
+    
+    # Handle different modes
+    if mode == "start":
+        print("Production mode: Running agent worker for LiveKit Cloud")
+    
+    # Use automatic dispatch - agent will be dispatched to each new room automatically
+    print("Agent using automatic dispatch pattern - will join all new rooms")
+    
+    # Configure worker options for automatic dispatch
+    worker_options = agents.WorkerOptions(
+        entrypoint_fnc=entrypoint,
+    )
+    
+    # Start the agent worker
+    agents.cli.run_app(worker_options)
